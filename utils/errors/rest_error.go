@@ -8,10 +8,25 @@ type RestErr struct {
 	Error   string `json:"domainerrors"`
 }
 
-func NewBadRequestError(message string) *RestErr  {
+func NewBadRequestError(message string) *RestErr {
 	return &RestErr{
 		Message: message,
 		Status:  http.StatusBadRequest,
-		Error:   "bad_request",
+		Error:   http.StatusText(http.StatusBadRequest),
 	}
+}
+
+func NewNotFoundError(message string) *RestErr {
+	return &RestErr{
+		Message: message,
+		Status:  http.StatusNotFound,
+		Error:   http.StatusText(http.StatusNotFound),
+	}
+}
+
+func NewNotImpelemented() *RestErr {
+	return &RestErr{
+		Message: "Impement me!",
+		Status: http.StatusNotImplemented,
+		Error: http.StatusText(http.StatusNotImplemented)}
 }
