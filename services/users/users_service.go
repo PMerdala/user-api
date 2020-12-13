@@ -13,6 +13,16 @@ func GetUser(userId int64) (*users.User, *errors.RestErr) {
 	return &result, nil
 }
 
+func GetUserByEmail(searchUser users.User) (*users.User, *errors.RestErr) {
+	if err := searchUser.CleanAndValidate(); err != nil {
+		return nil, err
+	}
+	if err := searchUser.GetByEmail(); err != nil {
+		return nil, err
+	}
+	return &searchUser, nil
+}
+
 func CreateUser(user users.User) (*users.User, *errors.RestErr) {
 	if err := user.CleanAndValidate(); err != nil {
 		return nil, err

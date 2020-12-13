@@ -23,6 +23,20 @@ func GetUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, user)
 }
+func GetUserByEmail(c *gin.Context) {
+	var user users.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		restErr := errors.NewBadRequestError("Invalid JSON body")
+		c.JSON(restErr.Status, restErr)
+		return
+	}
+	result, findErr := users_service.GetUserByEmail(user)
+	if findErr != nil {
+		c.JSON(findErr.Status, findErr)
+		return
+	}
+	c.JSON(http.StatusCreated, result)
+}
 
 func CreateUser(c *gin.Context) {
 	var user users.User
