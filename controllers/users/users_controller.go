@@ -1,11 +1,9 @@
 package users
 
 import (
-	"encoding/json"
 	"github.com/PMerdala/users-api/domain/users"
 	users_service "github.com/PMerdala/users-api/services/users"
 	"github.com/gin-gonic/gin"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -15,14 +13,8 @@ func GetUser(c *gin.Context){
 
 func CreateUser(c *gin.Context){
 	var user users.User
-	bytes,err:=ioutil.ReadAll(c.Request.Body)
-	if err!=nil{
-		//TODO: Handle error
-		c.JSON(http.StatusInternalServerError,gin.H{"message":err.Error(),})
-		return
-	}
-	if err:= json.Unmarshal(bytes,&user); err!=nil{
-		//TODO: Handle json error
+	if err:=c.ShouldBindJSON(&user); err!=nil{
+		//TODO: Handle request error
 		c.JSON(http.StatusInternalServerError,gin.H{"message":err.Error(),})
 		return
 	}
