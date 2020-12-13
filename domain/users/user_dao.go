@@ -2,8 +2,8 @@ package users
 
 import (
 	"fmt"
+	"github.com/PMerdala/users-api/utils/date_utils"
 	"github.com/PMerdala/users-api/utils/errors"
-	"time"
 )
 
 var (
@@ -32,8 +32,7 @@ func (user *User) Save() *errors.RestErr{
 		}
 		return errors.NewBadRequestError(fmt.Sprintf("User already exists with id: %d" ,user.Id))
 	}
-	now:=time.Now().UTC()
-	user.DateCreated = now.Format("2006-01-02T15:04:05.000Z")
+	user.DateCreated = date_utils.GetNowString()
 	usersDB[user.Id] = user
 	return nil
 }
