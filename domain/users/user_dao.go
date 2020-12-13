@@ -2,51 +2,64 @@ package users
 
 import (
 	"fmt"
+	"github.com/PMerdala/users-api/datasources/mysql/users_db"
 	"github.com/PMerdala/users-api/utils/date_utils"
 	"github.com/PMerdala/users-api/utils/errors"
+	"strings"
 )
 
-var (
-	usersDB = make(map[int64]*User)
+const (
+	queryInsertUser              = "INSERT INTO users(first_name,last_name,email,date_created) values (?, ?, ?, ?);"
+	queryUserById                = "SELECT id,first_name,last_name,email,date_created from users where id = ?;"
+	queryUserByEmail             = "SELECT id,first_name,last_name,email,date_created from users where email = ?;"
+	mysqlIndexUniqueEmailError   = "'users_email_uindex'"
+	mysqlNotRowsError            = "sql: no rows in result set"
+	indexUniqueEmailErrorMessage = "email %s already exists"
+	saveUserErrorMessage         = "error when trying to save user: %s"
+	getUserByIdErrorMessage      = "error when trying to get user by id %d: %s"
+	getUserByIdNotFound          = "Not found user by id %d"
 )
 
 func (user *User) Get() *errors.RestErr {
-	result := usersDB[user.Id]
-	if result == nil {
-		return errors.NewNotFoundError(fmt.Sprintf("User not found by id: %d", user.Id))
+	stmt, err := users_db.Client.Prepare(queryUserById)
+	if err != nil {
+		return errors.NewInternalServerError(
+			fmt.Sprintf(getUserByIdErrorMessage, err.Error()))
 	}
-	user.Id = result.Id
-	user.FirstName = result.FirstName
-	user.LastName = result.LastName
-	user.Email = result.Email
-	user.DateCreated = result.DateCreated
-
+	defer stmt.Close()
+	result := stmt.QueryRow(user.Id)
+	if err := result.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.DateCreated); err != nil {
+		if strings.Contains(err.Error(), mysqlNotRowsError) {
+			return errors.NewNotFoundError(
+				fmt.Sprintf(getUserByIdNotFound, user.Id))
+		}
+		return errors.NewInternalServerError(
+			fmt.Sprintf(getUserByIdErrorMessage, user.Id, err.Error()))
+	}
 	return nil
 }
 
 func (user *User) Save() *errors.RestErr {
-	if user.Id == 0 {
-		user.Id = int64(len(usersDB)) + 1
-	} else {
-		current := usersDB[user.Id]
-		if current != nil {
-			if current.Email == user.Email {
-				return errors.NewBadRequestError(fmt.Sprintf("User already exists with email: %s", user.Email))
-			}
-			return errors.NewBadRequestError(fmt.Sprintf("User already exists with id: %d", user.Id))
-		}
+	stmt, err := users_db.Client.Prepare(queryInsertUser)
+	if err != nil {
+		return errors.NewInternalServerError(fmt.Sprintf(saveUserErrorMessage, err.Error()))
 	}
-	foundUserId := int64(0)
-	for userId, currentUser := range usersDB {
-		if currentUser.Email == user.Email {
-			foundUserId = userId
-			break
-		}
-	}
-	if foundUserId != 0 {
-		return errors.NewBadRequestError(fmt.Sprintf("User already exists with email: %s", user.Email))
-	}
+	defer stmt.Close()
 	user.DateCreated = date_utils.GetNowString()
-	usersDB[user.Id] = user
+	insertResult, err := stmt.Exec(user.FirstName, user.LastName, user.Email, user.DateCreated)
+	if err != nil {
+		if strings.Contains(err.Error(), mysqlIndexUniqueEmailError) {
+			return errors.NewBadRequestError(
+				fmt.Sprintf(indexUniqueEmailErrorMessage, user.Email))
+		}
+		return errors.NewInternalServerError(
+			fmt.Sprintf(saveUserErrorMessage, err.Error()))
+	}
+	userId, err := insertResult.LastInsertId()
+	if err != nil {
+		return errors.NewInternalServerError(
+			fmt.Sprintf(saveUserErrorMessage, err.Error()))
+	}
+	user.Id = userId
 	return nil
 }
