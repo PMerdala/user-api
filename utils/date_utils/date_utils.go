@@ -8,10 +8,10 @@ const (
 	apiDatelayout = "2006-01-02T15:04:05.000Z"
 )
 
-func GetNowString() string{
+func GetNowString() string {
 	return GetNow().Format(apiDatelayout)
 }
 
-func GetNow() time.Time{
+func GetNow() time.Time {
 	return time.Now().UTC()
 }

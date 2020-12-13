@@ -37,13 +37,13 @@ func (user *User) Save() *errors.RestErr {
 		}
 	}
 	foundUserId := int64(0)
-	for userId,currentUser:=range usersDB{
-		if currentUser.Email == user.Email{
-			foundUserId=userId
+	for userId, currentUser := range usersDB {
+		if currentUser.Email == user.Email {
+			foundUserId = userId
 			break
 		}
 	}
-	if foundUserId != 0{
+	if foundUserId != 0 {
 		return errors.NewBadRequestError(fmt.Sprintf("User already exists with email: %s", user.Email))
 	}
 	user.DateCreated = date_utils.GetNowString()

@@ -27,6 +27,6 @@ func NewNotFoundError(message string) *RestErr {
 func NewNotImpelemented() *RestErr {
 	return &RestErr{
 		Message: "Impement me!",
-		Status: http.StatusNotImplemented,
-		Error: http.StatusText(http.StatusNotImplemented)}
+		Status:  http.StatusNotImplemented,
+		Error:   http.StatusText(http.StatusNotImplemented)}
 }

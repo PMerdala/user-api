@@ -2,10 +2,11 @@ package app
 
 import "github.com/gin-gonic/gin"
 
-var(
+var (
 	route = gin.Default()
 )
-func StartApplication(){
+
+func StartApplication() {
 	mapUrls()
 	route.Run(":8080")
 }

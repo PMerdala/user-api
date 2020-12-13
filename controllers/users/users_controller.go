@@ -9,32 +9,32 @@ import (
 	"strconv"
 )
 
-func GetUser(c *gin.Context){
-	userId, userErr:=strconv.ParseInt(c.Param("user_id"),10,64)
-	if userErr!=nil{
-		err:=errors.NewBadRequestError("user id should be a number")
-		c.JSON(http.StatusBadRequest,err)
+func GetUser(c *gin.Context) {
+	userId, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if userErr != nil {
+		err := errors.NewBadRequestError("user id should be a number")
+		c.JSON(http.StatusBadRequest, err)
 		return
 	}
-	user, getErr :=users_service.GetUser(userId)
-	if getErr!=nil{
-		c.JSON(getErr.Status,getErr)
+	user, getErr := users_service.GetUser(userId)
+	if getErr != nil {
+		c.JSON(getErr.Status, getErr)
 		return
 	}
-	c.JSON(http.StatusOK,user)
+	c.JSON(http.StatusOK, user)
 }
 
-func CreateUser(c *gin.Context){
+func CreateUser(c *gin.Context) {
 	var user users.User
-	if err:=c.ShouldBindJSON(&user); err!=nil{
+	if err := c.ShouldBindJSON(&user); err != nil {
 		restErr := errors.NewBadRequestError("Invalid JSON body")
-		c.JSON(restErr.Status,restErr)
+		c.JSON(restErr.Status, restErr)
 		return
 	}
-	result,saveErr:=users_service.CreateUser(user)
-	if saveErr!=nil{
-		c.JSON(saveErr.Status,saveErr)
+	result, saveErr := users_service.CreateUser(user)
+	if saveErr != nil {
+		c.JSON(saveErr.Status, saveErr)
 		return
 	}
-	c.JSON(http.StatusCreated,result)
+	c.JSON(http.StatusCreated, result)
 }

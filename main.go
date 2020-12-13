@@ -2,6 +2,6 @@ package main
 
 import "github.com/PMerdala/users-api/app"
 
-func main(){
+func main() {
 	app.StartApplication()
 }

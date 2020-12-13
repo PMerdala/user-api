@@ -5,7 +5,7 @@ import (
 	"github.com/PMerdala/users-api/controllers/users"
 )
 
-func mapUrls(){
+func mapUrls() {
 	route.GET("/ping", ping.Ping)
 	route.GET("/users/:user_id", users.GetUser)
 	route.POST("/users", users.CreateUser)
