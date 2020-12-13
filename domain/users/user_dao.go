@@ -18,13 +18,15 @@ const (
 	saveUserErrorMessage         = "error when trying to save user: %s"
 	getUserByIdErrorMessage      = "error when trying to get user by id %d: %s"
 	getUserByIdNotFound          = "Not found user by id %d"
+	getUserByEmailErrorMessage   = "error when trying to get user by email %s: %s"
+	getUserByEmailNotFound       = "Not found user by email %s"
 )
 
 func (user *User) Get() *errors.RestErr {
 	stmt, err := users_db.Client.Prepare(queryUserById)
 	if err != nil {
 		return errors.NewInternalServerError(
-			fmt.Sprintf(getUserByIdErrorMessage, err.Error()))
+			fmt.Sprintf(getUserByIdErrorMessage, user.Id, err.Error()))
 	}
 	defer stmt.Close()
 	result := stmt.QueryRow(user.Id)
@@ -35,6 +37,25 @@ func (user *User) Get() *errors.RestErr {
 		}
 		return errors.NewInternalServerError(
 			fmt.Sprintf(getUserByIdErrorMessage, user.Id, err.Error()))
+	}
+	return nil
+}
+
+func (user *User) GetByEmail() *errors.RestErr {
+	stmt, err := users_db.Client.Prepare(queryUserByEmail)
+	if err != nil {
+		return errors.NewInternalServerError(
+			fmt.Sprintf(getUserByEmailErrorMessage, user.Email, err.Error()))
+	}
+	defer stmt.Close()
+	result := stmt.QueryRow(user.Email)
+	if err := result.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.DateCreated); err != nil {
+		if strings.Contains(err.Error(), mysqlNotRowsError) {
+			return errors.NewNotFoundError(
+				fmt.Sprintf(getUserByEmailNotFound, user.Email))
+		}
+		return errors.NewInternalServerError(
+			fmt.Sprintf(getUserByEmailErrorMessage, user.Email, err.Error()))
 	}
 	return nil
 }
