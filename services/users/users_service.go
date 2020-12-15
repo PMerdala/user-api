@@ -58,19 +58,10 @@ func UpdateUser(isPartial bool, user users.User) (*users.User, *errors.RestErr) 
 	return currentUser, nil
 }
 
-func PatchUser(user users.User) (*users.User, *errors.RestErr) {
-	currentUser, err := GetUser(user.Id)
-	if err != nil {
+func DeleteUser(userId int64) (*users.User, *errors.RestErr) {
+	result := users.User{Id: userId}
+	if err := result.Delete(); err != nil {
 		return nil, err
 	}
-	if err := user.CleanAndValidate(); err != nil {
-		return nil, err
-	}
-	currentUser.FirstName = user.FirstName
-	currentUser.LastName = user.LastName
-	currentUser.Email = user.Email
-	if err := currentUser.Update(); err != nil {
-		return nil, err
-	}
-	return currentUser, nil
+	return &result, nil
 }

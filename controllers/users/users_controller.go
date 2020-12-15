@@ -72,6 +72,19 @@ func UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+func DeleteUser(c *gin.Context) {
+	userId, ok := getUserIdFromUrl(c)
+	if !ok {
+		return
+	}
+	result, deleteErr := users_service.DeleteUser(userId)
+	if deleteErr != nil {
+		c.JSON(deleteErr.Status, deleteErr)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
 func getUserIdFromUrl(c *gin.Context) (userId int64, status bool) {
 	userId, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if userErr != nil {

@@ -13,9 +13,11 @@ const (
 	queryUpdateUser              = "UPDATE users set first_name=?,last_name=?,email=? where id=?;"
 	queryUserById                = "SELECT id,first_name,last_name,email,date_created from users where id = ?;"
 	queryUserByEmail             = "SELECT id,first_name,last_name,email,date_created from users where email = ?;"
+	queryDeleteUser              = "DELETE from users where id = ?;"
 	indexUniqueEmailErrorMessage = "email %s already exists"
 	saveUserErrorMessage         = "error when trying to save user: %s"
 	updateUserErrorMessage       = "error when trying to update user id=%d: %s"
+	deleteUserErrorMessage       = "error when trying to delete user id=%d: %s"
 	getUserByIdErrorMessage      = "error when trying to get user by id %d: %s"
 	getUserByIdNotFound          = "Not found user by id %d"
 	getUserByEmailErrorMessage   = "error when trying to get user by email %s: %s"
@@ -83,6 +85,23 @@ func (user *User) Update() *errors.RestErr {
 	if updateErr != nil {
 		return mysql_utils.ParserError(updateErr,
 			fmt.Sprintf(indexUniqueEmailErrorMessage, user.Email))
+	}
+	return nil
+}
+
+func (user *User) Delete() *errors.RestErr {
+	if getErr := user.Get(); getErr != nil {
+		return getErr
+	}
+	stmt, prepareErr := users_db.Client.Prepare(queryDeleteUser)
+	if prepareErr != nil {
+		return errors.NewInternalServerError(fmt.Sprintf(deleteUserErrorMessage, user.Id, prepareErr.Error()))
+	}
+	defer stmt.Close()
+	_, deleteErr := stmt.Exec(user.Id)
+	if deleteErr != nil {
+		return mysql_utils.ParserError(deleteErr,
+			fmt.Sprintf(deleteUserErrorMessage, user.Id, ""))
 	}
 	return nil
 }
