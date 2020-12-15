@@ -90,9 +90,6 @@ func (user *User) Update() *errors.RestErr {
 }
 
 func (user *User) Delete() *errors.RestErr {
-	if getErr := user.Get(); getErr != nil {
-		return getErr
-	}
 	stmt, prepareErr := users_db.Client.Prepare(queryDeleteUser)
 	if prepareErr != nil {
 		return errors.NewInternalServerError(fmt.Sprintf(deleteUserErrorMessage, user.Id, prepareErr.Error()))
