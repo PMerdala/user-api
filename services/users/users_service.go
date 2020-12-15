@@ -33,7 +33,32 @@ func CreateUser(user users.User) (*users.User, *errors.RestErr) {
 	return &user, nil
 }
 
-func UpdateUser(user users.User) (*users.User, *errors.RestErr) {
+func UpdateUser(isPartial bool, user users.User) (*users.User, *errors.RestErr) {
+	currentUser, err := GetUser(user.Id)
+	if err != nil {
+		return nil, err
+	}
+	if !isPartial || user.Email != "" {
+		if err := user.CleanAndValidate(); err != nil {
+			return nil, err
+		}
+	}
+	if !isPartial || user.FirstName != "" {
+		currentUser.FirstName = user.FirstName
+	}
+	if !isPartial || user.LastName != "" {
+		currentUser.LastName = user.LastName
+	}
+	if !isPartial || user.Email != "" {
+		currentUser.Email = user.Email
+	}
+	if err := currentUser.Update(); err != nil {
+		return nil, err
+	}
+	return currentUser, nil
+}
+
+func PatchUser(user users.User) (*users.User, *errors.RestErr) {
 	currentUser, err := GetUser(user.Id)
 	if err != nil {
 		return nil, err

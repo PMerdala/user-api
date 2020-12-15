@@ -10,10 +10,8 @@ import (
 )
 
 func GetUser(c *gin.Context) {
-	userId, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
-	if userErr != nil {
-		err := errors.NewBadRequestError("user id should be a number")
-		c.JSON(http.StatusBadRequest, err)
+	userId, ok := getUserIdFromUrl(c)
+	if !ok {
 		return
 	}
 	user, getErr := users_service.GetUser(userId)
@@ -54,10 +52,8 @@ func CreateUser(c *gin.Context) {
 }
 
 func UpdateUser(c *gin.Context) {
-	userId, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
-	if userErr != nil {
-		err := errors.NewBadRequestError("user id should be a number")
-		c.JSON(http.StatusBadRequest, err)
+	userId, ok := getUserIdFromUrl(c)
+	if !ok {
 		return
 	}
 	var user users.User
@@ -67,10 +63,21 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 	user.Id = userId
-	result, saveErr := users_service.UpdateUser(user)
+	isPartial := c.Request.Method == http.MethodPatch
+	result, saveErr := users_service.UpdateUser(isPartial, user)
 	if saveErr != nil {
 		c.JSON(saveErr.Status, saveErr)
 		return
 	}
 	c.JSON(http.StatusOK, result)
+}
+
+func getUserIdFromUrl(c *gin.Context) (userId int64, status bool) {
+	userId, userErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if userErr != nil {
+		err := errors.NewBadRequestError("user id should be a number")
+		c.JSON(http.StatusBadRequest, err)
+		return 0, false
+	}
+	return userId, true
 }
